@@ -63,6 +63,7 @@ export default function AddRooftop() {
           className="bg-white/90 backdrop-blur-md rounded-xl shadow-2xl p-8 max-w-md w-full space-y-6"
         >
           <h2 className="text-2xl font-bold text-center text-gray-900">Connect Your Rooftop</h2>
+          {/* Multi-step form for rooftop registration */}
 
           {step === 1 && (
             <div>
