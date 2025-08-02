@@ -1,13 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/router';
-import Select from 'react-select';
+import Select, { SingleValue } from 'react-select';
 import countryList from 'react-select-country-list';
+
+interface OptionType {
+  value: string;
+  label: string;
+}
 
 export default function AddRooftop() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    country: null,
+    country: null as SingleValue<OptionType>,
     systemSize: '',
     installDate: '',
     monthlyGeneration: '',
@@ -30,7 +35,7 @@ export default function AddRooftop() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleCountryChange = (selected: any) => {
+  const handleCountryChange = (selected: SingleValue<OptionType>) => {
     setFormData(prev => ({ ...prev, country: selected }));
   };
 
