@@ -108,11 +108,11 @@ export default function Dashboard() {
             
             {/* Demo/Preview Data */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6 max-w-2xl mx-auto">
-              <h4 className="text-sm font-medium text-blue-900 mb-4">📊 Preview: What you'll see after connecting</h4>
+              <h4 className="text-sm font-medium text-blue-900 mb-4">📊 Preview: What you&apos;ll see after connecting</h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                 <div className="bg-white rounded-lg p-3">
                   <div className="text-lg font-bold text-gray-900">25.5 kWh</div>
-                  <div className="text-xs text-gray-600">Today's Production</div>
+                  <div className="text-xs text-gray-600">Today&apos;s Production</div>
                 </div>
                 <div className="bg-white rounded-lg p-3">
                   <div className="text-lg font-bold text-gray-900">785 kWh</div>

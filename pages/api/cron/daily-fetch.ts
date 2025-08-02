@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { supabase, UserConnection } from '../../../lib/supabase'
+import { supabase } from '../../../lib/supabase'
 import { DatabaseService } from '../../../lib/database'
 import { fetchProductionData } from '../../../lib/providers'
 import { veWorldService } from '../../../lib/veworld'

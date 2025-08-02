@@ -97,6 +97,6 @@ export async function fetchProductionData(user: UserConnection): Promise<{ kwh: 
 
 // SMA typically uses API keys rather than OAuth tokens
 // But if they do support token refresh, this would be the structure
-export async function refreshAccessToken(user: UserConnection): Promise<string> {
+export async function refreshAccessToken(_user: UserConnection): Promise<string> {
   throw new Error('SMA typically uses API keys, not refreshable OAuth tokens');
 }
