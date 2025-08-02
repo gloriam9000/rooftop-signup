@@ -14,7 +14,6 @@ export default function AddRooftop() {
   const [formData, setFormData] = useState({
     country: null as SingleValue<OptionType>,
     systemSize: '',
-    installDate: '',
     monthlyGeneration: '',
   });
 
@@ -82,32 +81,18 @@ export default function AddRooftop() {
           )}
 
           {step === 2 && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">System Size (kWp)</label>
-                <input
-                  type="number"
-                  name="systemSize"
-                  value={formData.systemSize}
-                  onChange={handleChange}
-                  className="w-full border px-3 py-2 rounded-lg"
-                  placeholder="e.g., 8.5"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Installation Date</label>
-                <input
-                  type="date"
-                  name="installDate"
-                  value={formData.installDate}
-                  onChange={handleChange}
-                  className="w-full border px-3 py-2 rounded-lg"
-                  required
-                />
-              </div>
-            </>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">System Size (kWp)</label>
+              <input
+                type="number"
+                name="systemSize"
+                value={formData.systemSize}
+                onChange={handleChange}
+                className="w-full border px-3 py-2 rounded-lg"
+                placeholder="e.g., 8.5"
+                required
+              />
+            </div>
           )}
 
           {step === 3 && (
