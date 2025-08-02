@@ -62,7 +62,10 @@ export default function AddRooftop() {
           onSubmit={handleSubmit}
           className="bg-white/90 backdrop-blur-md rounded-xl shadow-2xl p-8 max-w-md w-full space-y-6"
         >
-          <h2 className="text-2xl font-bold text-center text-gray-900">Connect Your Rooftop</h2>
+<h2 className="text-2xl font-bold text-center text-gray-900">Connect Your Rooftop</h2>
+<p className="text-center text-sm text-gray-700 mt-1">
+  Earn B3TR rewards for every kilowatt-hour your rooftop solar panels produce.
+</p>
           {/* Multi-step form for rooftop registration */}
 
           {step === 1 && (
