@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Select, { SingleValue } from 'react-select';
 import countryList from 'react-select-country-list';
@@ -11,6 +11,7 @@ interface OptionType {
 export default function AddRooftop() {
   const router = useRouter();
   const [step, setStep] = useState(1);
+  const [oauthStatus, setOauthStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [formData, setFormData] = useState({
     country: null as SingleValue<OptionType>,
     systemSize: '',
@@ -21,6 +22,19 @@ export default function AddRooftop() {
   });
 
   const countryOptions = countryList().getData();
+
+  // Handle OAuth callback status
+  useEffect(() => {
+    const { success, error } = router.query;
+    
+    if (success) {
+      setOauthStatus('success');
+      setStep(5); // Go to final step to show success
+    } else if (error) {
+      setOauthStatus('error');
+      // Stay on current step but show error
+    }
+  }, [router.query]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,10 +47,12 @@ export default function AddRooftop() {
   };
 
   const handleConnect = () => {
-    // Simulate OAuth connection
-    console.log('Connecting to', formData.appProvider?.label);
-    alert(`Connecting to ${formData.appProvider?.label}...`);
-    router.push('/');
+    const provider = formData.appProvider?.value;
+    
+    // Redirect to our API endpoint which will handle the OAuth flow
+    if (provider && ['enphase', 'solaredge', 'tesla', 'sunpower'].includes(provider)) {
+      window.location.href = `/api/oauth/${provider}-url`;
+    }
   };
 
   // OAuth providers that support direct connection
@@ -154,7 +170,53 @@ export default function AddRooftop() {
 
           {step === 5 && (
             <div>
-              {isOAuthProvider ? (
+              {oauthStatus === 'success' ? (
+                <div className="text-center">
+                  <div className="mb-4">
+                    <svg className="w-16 h-16 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Successfully Connected!
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-6">
+                    Your {formData.appProvider?.label} account is now connected. We&apos;ll start tracking your solar production automatically.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => router.push('/')}
+                    className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
+                  >
+                    Complete Setup
+                  </button>
+                </div>
+              ) : oauthStatus === 'error' ? (
+                <div className="text-center">
+                  <div className="mb-4">
+                    <svg className="w-16 h-16 text-red-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Connection Failed
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-6">
+                    There was an issue connecting to {formData.appProvider?.label}. Please try again.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOauthStatus('idle');
+                      // Clear URL params
+                      router.replace('/add-rooftop', undefined, { shallow: true });
+                    }}
+                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : isOAuthProvider ? (
                 <div className="text-center">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     Connect to {formData.appProvider?.label}
@@ -226,8 +288,8 @@ export default function AddRooftop() {
             className={`w-full py-3 rounded-lg font-semibold transition ${
               step === 4 && !canProceedToStep5
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : step === 5 && isOAuthProvider
-                ? 'hidden' // Hide submit button when OAuth connect button is shown
+                : step === 5 && (isOAuthProvider || oauthStatus !== 'idle')
+                ? 'hidden' // Hide submit button for OAuth flow or when showing success/error
                 : 'bg-black text-white hover:bg-gray-900'
             }`}
           >
