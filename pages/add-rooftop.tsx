@@ -16,19 +16,34 @@ export default function AddRooftop() {
     systemSize: '',
     monthlyGeneration: '',
     appProvider: null as SingleValue<OptionType>,
+    apiKey: '',
+    systemId: '',
   });
 
   const countryOptions = countryList().getData();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (step < 4) {
+    if (step < 5) {
       setStep(step + 1);
     } else {
       console.log('Rooftop submitted:', formData);
       router.push('/');
     }
   };
+
+  const handleConnect = () => {
+    // Simulate OAuth connection
+    console.log('Connecting to', formData.appProvider?.label);
+    alert(`Connecting to ${formData.appProvider?.label}...`);
+    router.push('/');
+  };
+
+  // OAuth providers that support direct connection
+  const oauthProviders = ['enphase', 'solaredge', 'tesla', 'sunpower'];
+  const isOAuthProvider = formData.appProvider && oauthProviders.includes(formData.appProvider.value);
+
+  const canProceedToStep5 = formData.appProvider !== null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -137,11 +152,86 @@ export default function AddRooftop() {
             </div>
           )}
 
+          {step === 5 && (
+            <div>
+              {isOAuthProvider ? (
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Connect to {formData.appProvider?.label}
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-6">
+                    We'll securely connect to your {formData.appProvider?.label} account to track your solar production automatically.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleConnect}
+                    className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                    Connect to {formData.appProvider?.label}
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Connect Your System
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Please provide your API credentials to connect your solar monitoring system.
+                  </p>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        API Key
+                      </label>
+                      <input
+                        type="text"
+                        name="apiKey"
+                        value={formData.apiKey}
+                        onChange={handleChange}
+                        className="w-full border px-3 py-2 rounded-lg"
+                        placeholder="Enter your API key"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        System ID
+                      </label>
+                      <input
+                        type="text"
+                        name="systemId"
+                        value={formData.systemId}
+                        onChange={handleChange}
+                        className="w-full border px-3 py-2 rounded-lg"
+                        placeholder="Enter your system ID"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-3">
+                    Need help finding these credentials? Check your app's settings or 
+                    <a href="mailto:support@solarwise.vet" className="text-blue-600 underline"> contact our support team</a>.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           <button
             type="submit"
-            className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-900 transition"
+            disabled={step === 4 && !canProceedToStep5}
+            className={`w-full py-3 rounded-lg font-semibold transition ${
+              step === 4 && !canProceedToStep5
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : step === 5 && isOAuthProvider
+                ? 'hidden' // Hide submit button when OAuth connect button is shown
+                : 'bg-black text-white hover:bg-gray-900'
+            }`}
           >
-            {step < 4 ? 'Next' : 'Submit'}
+            {step < 4 ? 'Next' : step === 4 ? 'Next' : 'Complete Setup'}
           </button>
         </form>
       </div>
