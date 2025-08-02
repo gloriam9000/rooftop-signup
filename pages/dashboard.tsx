@@ -23,43 +23,26 @@ export default function Dashboard() {
       try {
         setLoading(true);
         setError(null);
-        
-        // FUCK THE API CALLS - USE DIRECT FETCH.TS DATA
-        const mockData = {
-          enphase: { daily: 45.2, monthly: 950, total: 12500, b3trEarned: 1250 },
-          solaredge: { daily: 42.8, monthly: 885, total: 11200, b3trEarned: 1120 },
-          tesla: { daily: 38.5, monthly: 820, total: 9800, b3trEarned: 980 },
-          sma: { daily: 41.3, monthly: 900, total: 10500, b3trEarned: 1050 },
-          sunpower: { daily: 47.1, monthly: 975, total: 13200, b3trEarned: 1320 },
-          other: { daily: 40.0, monthly: 850, total: 10000, b3trEarned: 1000 }
-        }
-        
-        // Add randomness like fetch.ts does
-        const variance = 0.95 + (Math.random() * 0.1) // ±5% variance
-        const baseData = mockData.enphase // Use Enphase as default
-        
-        // Set the production data DIRECTLY
-        setProductionData({
-          daily: Math.round(baseData.daily * variance * 10) / 10,
-          monthly: Math.round(baseData.monthly * variance),
-          total: Math.round(baseData.total * variance),
-          b3trEarned: Math.round(baseData.b3trEarned * variance),
-          lastUpdated: new Date().toISOString(),
-          provider: 'enphase'
-        })
-        
-        // Set empty connections (no real connections)
-        setConnections([])
-        
-      } catch (error) {
-        console.error('Dashboard error:', error)
-        setError('Something went wrong')
-      } finally {
-        setLoading(false)
-      }
-    }
 
-    fetchData()
+        const res = await fetch('/api/production/fetch?provider=enphase');
+
+        if (!res.ok) {
+          throw new Error('Failed to fetch production data');
+        }
+
+        const data: ProductionData = await res.json();
+        setProductionData(data);
+        setConnections([]); // still mocked for now
+
+      } catch (error) {
+        console.error('Dashboard error:', error);
+        setError('Something went wrong');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [router])
 
   if (loading) {
