@@ -9,7 +9,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { code, error } = req.query;
 
   if (error) {
-    // User denied access or other OAuth error
     return res.redirect('/add-rooftop?error=oauth_denied');
   }
 
@@ -18,18 +17,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // Exchange authorization code for access token
-    const tokenResponse = await fetch('https://api.enphaseenergy.com/oauth/token', {
+    const tokenResponse = await fetch('https://auth.tesla.com/oauth2/v3/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
         grant_type: 'authorization_code',
-        client_id: process.env.ENPHASE_CLIENT_ID || 'your_enphase_client_id',
-        client_secret: process.env.ENPHASE_CLIENT_SECRET || 'your_enphase_client_secret',
+        client_id: process.env.TESLA_CLIENT_ID || 'your_tesla_client_id',
+        client_secret: process.env.TESLA_CLIENT_SECRET || 'your_tesla_client_secret',
         code: code as string,
-        redirect_uri: `${process.env.NEXTAUTH_URL || 'http://localhost:3001'}/api/oauth/enphase-callback`,
+        redirect_uri: `${process.env.NEXTAUTH_URL || 'http://localhost:3001'}/api/oauth/tesla-callback`,
       }),
     });
 
@@ -45,7 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Store the connection in database
     const connection = await DatabaseService.saveUserConnection({
       userId: tempUserId,
-      provider: 'enphase',
+      provider: 'tesla',
       accessToken: tokenData.access_token,
       refreshToken: tokenData.refresh_token,
       systemId: tokenData.system_id || null,
@@ -55,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error('Failed to save connection to database');
     }
 
-    console.log('Enphase connection saved:', {
+    console.log('Tesla connection saved:', {
       connectionId: connection.id,
       provider: connection.provider,
       userId: connection.user_id
@@ -64,8 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Set a cookie to remember the user for the demo
     res.setHeader('Set-Cookie', `temp_user_id=${tempUserId}; Path=/; HttpOnly; SameSite=Strict`);
     
-    // Redirect back to success page
-    res.redirect('/add-rooftop?success=enphase_connected');
+    res.redirect('/add-rooftop?success=tesla_connected');
     
   } catch (error) {
     console.error('OAuth callback error:', error);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { UserConnection } from '../lib/supabase';
 
 interface ProductionData {
   daily: number;
@@ -12,25 +13,45 @@ interface ProductionData {
 
 export default function Dashboard() {
   const router = useRouter();
+  const [connections, setConnections] = useState<UserConnection[]>([]);
   const [productionData, setProductionData] = useState<ProductionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate fetching user's connected provider from localStorage or API
-    const mockConnectedProvider = 'enphase'; // In real app, this would come from user data
-    
-    const fetchProductionData = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/production/fetch?provider=${mockConnectedProvider}`);
         
-        if (!response.ok) {
-          throw new Error('Failed to fetch production data');
+        // First, fetch user's connections
+        const connectionsResponse = await fetch('/api/user-connections');
+        
+        if (!connectionsResponse.ok) {
+          if (connectionsResponse.status === 401) {
+            // No user session, redirect to signup
+            router.push('/add-rooftop');
+            return;
+          }
+          throw new Error('Failed to fetch connections');
         }
         
-        const data: ProductionData = await response.json();
-        setProductionData(data);
+        const connectionsData = await connectionsResponse.json();
+        const userConnections = connectionsData.connections;
+        setConnections(userConnections);
+        
+        // If user has connections, fetch production data for the first one
+        if (userConnections.length > 0) {
+          const primaryProvider = userConnections[0].provider;
+          
+          const productionResponse = await fetch(`/api/production/fetch?provider=${primaryProvider}`);
+          
+          if (!productionResponse.ok) {
+            throw new Error('Failed to fetch production data');
+          }
+          
+          const data: ProductionData = await productionResponse.json();
+          setProductionData(data);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
@@ -38,8 +59,8 @@ export default function Dashboard() {
       }
     };
 
-    fetchProductionData();
-  }, []);
+    fetchData();
+  }, [router]);
 
   if (loading) {
     return (
@@ -91,6 +112,49 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Connected Systems */}
+        {connections.length > 0 && (
+          <div className="bg-white rounded-lg shadow mb-8">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">Connected Systems</h2>
+              <p className="text-sm text-gray-600">Your solar monitoring connections</p>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {connections.map((connection, index) => (
+                  <div key={connection.id} className="border rounded-lg p-4 hover:shadow-md transition">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        {connection.provider.charAt(0).toUpperCase() + connection.provider.slice(1)}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {index === 0 ? 'Primary' : `System ${index + 1}`}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-1">
+                      Connected: {new Date(connection.connected_at).toLocaleDateString()}
+                    </p>
+                    {connection.system_size && (
+                      <p className="text-sm text-gray-600 mb-1">
+                        Size: {connection.system_size} kW
+                      </p>
+                    )}
+                    {connection.system_id && (
+                      <p className="text-xs text-gray-500">
+                        System ID: {connection.system_id}
+                      </p>
+                    )}
+                    <div className="mt-2 flex items-center">
+                      <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                      <span className="text-xs text-gray-600">Active</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {productionData && (
           <>
             {/* Stats Grid */}

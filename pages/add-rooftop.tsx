@@ -12,6 +12,7 @@ export default function AddRooftop() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [oauthStatus, setOauthStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [manualLoading, setManualLoading] = useState(false);
   const [formData, setFormData] = useState({
     country: null as SingleValue<OptionType>,
     systemSize: '',
@@ -52,6 +53,47 @@ export default function AddRooftop() {
     // Redirect to our API endpoint which will handle the OAuth flow
     if (provider && ['enphase', 'solaredge', 'tesla', 'sunpower'].includes(provider)) {
       window.location.href = `/api/oauth/${provider}-url`;
+    }
+  };
+
+  const handleManualConnect = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setManualLoading(true);
+    
+    try {
+      const response = await fetch('/api/connect-manual', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          provider: formData.appProvider?.value,
+          apiKey: formData.apiKey,
+          systemId: formData.systemId,
+          systemSize: formData.systemSize,
+          monthlyGeneration: formData.monthlyGeneration,
+          country: formData.country?.label,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save connection');
+      }
+
+      const result = await response.json();
+      console.log('Manual connection saved:', result);
+      
+      // Set success status and redirect to dashboard
+      setOauthStatus('success');
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 1500);
+      
+    } catch (error) {
+      console.error('Manual connection error:', error);
+      setOauthStatus('error');
+    } finally {
+      setManualLoading(false);
     }
   };
 
@@ -280,6 +322,30 @@ export default function AddRooftop() {
                     Need help finding these credentials? Check your app&apos;s settings or 
                     <a href="mailto:support@solarwise.vet" className="text-blue-600 underline"> contact our support team</a>.
                   </p>
+                  <button
+                    type="button"
+                    onClick={handleManualConnect}
+                    disabled={!formData.apiKey || !formData.systemId || manualLoading}
+                    className={`w-full mt-6 py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
+                      !formData.apiKey || !formData.systemId || manualLoading
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                  >
+                    {manualLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Connecting...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        </svg>
+                        Connect System
+                      </>
+                    )}
+                  </button>
                 </div>
               )}
             </div>
