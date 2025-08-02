@@ -146,7 +146,7 @@ export default function AddRooftop() {
                 isSearchable
               />
               <p className="text-xs text-gray-600 mt-2">
-                Can't find your app? We're constantly onboarding more systems. Please check back soon or 
+                Can&apos;t find your app? We&apos;re constantly onboarding more systems. Please check back soon or 
                 <a href="mailto:support@solarwise.vet" className="text-blue-600 underline"> suggest one via email</a>.
               </p>
             </div>
@@ -160,7 +160,7 @@ export default function AddRooftop() {
                     Connect to {formData.appProvider?.label}
                   </h3>
                   <p className="text-sm text-gray-600 mb-6">
-                    We'll securely connect to your {formData.appProvider?.label} account to track your solar production automatically.
+                    We&apos;ll securely connect to your {formData.appProvider?.label} account to track your solar production automatically.
                   </p>
                   <button
                     type="button"
@@ -212,7 +212,7 @@ export default function AddRooftop() {
                     </div>
                   </div>
                   <p className="text-xs text-gray-500 mt-3">
-                    Need help finding these credentials? Check your app's settings or 
+                    Need help finding these credentials? Check your app&apos;s settings or 
                     <a href="mailto:support@solarwise.vet" className="text-blue-600 underline"> contact our support team</a>.
                   </p>
                 </div>
