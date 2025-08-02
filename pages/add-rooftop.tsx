@@ -130,6 +130,10 @@ export default function AddRooftop() {
                 placeholder="Select your app"
                 isSearchable
               />
+              <p className="text-xs text-gray-600 mt-2">
+                Can't find your app? We're constantly onboarding more systems. Please check back soon or 
+                <a href="mailto:support@solarwise.vet" className="text-blue-600 underline"> suggest one via email</a>.
+              </p>
             </div>
           )}
 
