@@ -15,13 +15,14 @@ export default function AddRooftop() {
     country: null as SingleValue<OptionType>,
     systemSize: '',
     monthlyGeneration: '',
+    appProvider: null as SingleValue<OptionType>,
   });
 
   const countryOptions = countryList().getData();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (step < 3) {
+    if (step < 4) {
       setStep(step + 1);
     } else {
       console.log('Rooftop submitted:', formData);
@@ -110,11 +111,33 @@ export default function AddRooftop() {
             </div>
           )}
 
+          {step === 4 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Which app do you use to track your solar production?
+              </label>
+              <Select
+                options={[
+                  { value: 'enphase', label: 'Enphase Enlighten' },
+                  { value: 'solaredge', label: 'SolarEdge Monitoring' },
+                  { value: 'sma', label: 'SMA Sunny Portal' },
+                  { value: 'tesla', label: 'Tesla Solar App' },
+                  { value: 'sunpower', label: 'SunPower Monitoring' },
+                  { value: 'other', label: 'Other / Not Listed' },
+                ]}
+                value={formData.appProvider}
+                onChange={(selected) => setFormData(prev => ({ ...prev, appProvider: selected }))}
+                placeholder="Select your app"
+                isSearchable
+              />
+            </div>
+          )}
+
           <button
             type="submit"
             className="w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-900 transition"
           >
-            {step < 3 ? 'Next' : 'Submit'}
+            {step < 4 ? 'Next' : 'Submit'}
           </button>
         </form>
       </div>
