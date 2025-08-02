@@ -1,5 +1,8 @@
 import { supabase, UserConnection } from './supabase'
 
+// Export the UserConnection type for use in other modules
+export type { UserConnection }
+
 export class DatabaseService {
   
   // Create or update user connection after OAuth/manual setup
@@ -59,6 +62,27 @@ export class DatabaseService {
 
       if (error) {
         console.error('Error fetching user connections:', error)
+        return []
+      }
+
+      return data || []
+    } catch (error) {
+      console.error('Database error:', error)
+      return []
+    }
+  }
+
+  // Get all connected users for cron job processing
+  static async getAllConnectedUsers(): Promise<UserConnection[]> {
+    try {
+      const { data, error } = await supabase
+        .from('user_connections')
+        .select('*')
+        .eq('is_active', true)
+        .order('connected_at', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching all connected users:', error)
         return []
       }
 
