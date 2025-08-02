@@ -180,15 +180,18 @@ export default function AddRooftop() {
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
                     Successfully Connected!
                   </h3>
-                  <p className="text-sm text-gray-600 mb-6">
+                  <p className="text-sm text-gray-600 mb-4">
                     Your {formData.appProvider?.label} account is now connected. We&apos;ll start tracking your solar production automatically.
+                  </p>
+                  <p className="text-sm text-green-600 mt-4">
+                    Success! Your rooftop is now connected. You&apos;ll start earning B3TR as your system produces clean energy.
                   </p>
                   <button
                     type="button"
-                    onClick={() => router.push('/')}
-                    className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition"
+                    onClick={() => router.push('/dashboard')}
+                    className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition mt-6"
                   >
-                    Complete Setup
+                    View Dashboard
                   </button>
                 </div>
               ) : oauthStatus === 'error' ? (
