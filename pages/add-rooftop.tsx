@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
-import Select from 'react-select';
+import Select, { SingleValue } from 'react-select';
 import countryList from 'react-select-country-list';
-import { ChevronDown, Home, MapPin, Phone, Mail, User } from 'lucide-react';
+import { Home, MapPin, Phone, Mail, User } from 'lucide-react';
 import type { NextPage } from 'next';
+
+interface OptionType {
+  value: string;
+  label: string;
+}
 
 interface FormData {
   firstName: string;
@@ -13,9 +18,9 @@ interface FormData {
   city: string;
   state: string;
   zipCode: string;
-  country: any;
-  rooftopType: any;
-  homeOwnership: any;
+  country: SingleValue<OptionType>;
+  rooftopType: SingleValue<OptionType>;
+  homeOwnership: SingleValue<OptionType>;
 }
 
 const AddRooftop: NextPage = () => {
@@ -56,7 +61,7 @@ const AddRooftop: NextPage = () => {
     }));
   };
 
-  const handleSelectChange = (name: string) => (selectedOption: any) => {
+  const handleSelectChange = (name: string) => (selectedOption: SingleValue<OptionType>) => {
     setFormData(prev => ({
       ...prev,
       [name]: selectedOption
@@ -70,7 +75,7 @@ const AddRooftop: NextPage = () => {
   };
 
   const customSelectStyles = {
-    control: (provided: any) => ({
+    control: (provided: Record<string, unknown>) => ({
       ...provided,
       borderColor: '#d1d5db',
       '&:hover': {
@@ -79,7 +84,7 @@ const AddRooftop: NextPage = () => {
       boxShadow: 'none',
       minHeight: '42px',
     }),
-    option: (provided: any, state: any) => ({
+    option: (provided: Record<string, unknown>, state: { isSelected: boolean; isFocused: boolean }) => ({
       ...provided,
       backgroundColor: state.isSelected ? '#3b82f6' : state.isFocused ? '#eff6ff' : 'white',
       color: state.isSelected ? 'white' : '#374151',
