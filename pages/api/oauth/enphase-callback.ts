@@ -6,67 +6,77 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { code, error } = req.query;
+  const { code, error, state } = req.query;
+  const returnedState = state as string;
+  const savedState = req.cookies.oauth_state;
 
-  if (error) {
-    // User denied access or other OAuth error
-    return res.redirect('/add-rooftop?error=oauth_denied');
+  if (!returnedState || returnedState !== savedState) {
+    return res.redirect('/add-rooftop?error=csrf_detected');
   }
 
-  if (!code) {
-    return res.redirect('/add-rooftop?error=missing_code');
-  }
+  if (error) return res.redirect('/add-rooftop?error=oauth_denied');
+  if (!code) return res.redirect('/add-rooftop?error=missing_code');
 
   try {
-    // Exchange authorization code for access token
+    // Clear the OAuth state cookie
+    res.setHeader('Set-Cookie', 'oauth_state=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0');
+
+    // 1. Exchange code for access token
     const tokenResponse = await fetch('https://api.enphaseenergy.com/oauth/token', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         grant_type: 'authorization_code',
-        client_id: process.env.ENPHASE_CLIENT_ID || 'your_enphase_client_id',
-        client_secret: process.env.ENPHASE_CLIENT_SECRET || 'your_enphase_client_secret',
+        client_id: process.env.ENPHASE_CLIENT_ID || '',
+        client_secret: process.env.ENPHASE_CLIENT_SECRET || '',
         code: code as string,
         redirect_uri: `${process.env.NEXTAUTH_URL || 'http://localhost:3001'}/api/oauth/enphase-callback`,
       }),
     });
 
-    if (!tokenResponse.ok) {
-      throw new Error('Failed to exchange code for token');
-    }
-
+    if (!tokenResponse.ok) throw new Error('Failed to exchange code for token');
     const tokenData = await tokenResponse.json();
-    
-    // Generate a temporary user ID (in production, this would come from your auth system)
+
+    const accessToken = tokenData.access_token;
+    const refreshToken = tokenData.refresh_token;
+
+    // 2. Use access token to fetch system_id
+    const systemsResponse = await fetch('https://api.enphaseenergy.com/api/v4/systems', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        'key': process.env.ENPHASE_API_KEY || '',
+      },
+    });
+
+    if (!systemsResponse.ok) throw new Error('Failed to fetch Enphase systems');
+
+    const systemsData = await systemsResponse.json();
+
+    const firstSystem = systemsData.systems?.[0];
+    const systemId = firstSystem?.system_id;
+
+    if (!systemId) throw new Error('No system ID found for Enphase user');
+
+    // 3. Save everything to DB
     const tempUserId = req.cookies.temp_user_id || `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    // Store the connection in database
+
     const connection = await DatabaseService.saveUserConnection({
       userId: tempUserId,
       provider: 'enphase',
-      accessToken: tokenData.access_token,
-      refreshToken: tokenData.refresh_token,
-      systemId: tokenData.system_id || null,
+      accessToken,
+      refreshToken,
+      systemId,
     });
 
-    if (!connection) {
-      throw new Error('Failed to save connection to database');
-    }
+    if (!connection) throw new Error('Failed to save connection to database');
 
-    console.log('Enphase connection saved:', {
-      connectionId: connection.id,
-      provider: connection.provider,
-      userId: connection.user_id
-    });
+    console.log('✅ Enphase connection saved:', connection);
 
-    // Set a cookie to remember the user for the demo
     res.setHeader('Set-Cookie', `temp_user_id=${tempUserId}; Path=/; HttpOnly; SameSite=Strict`);
-    
-    // Redirect back to success page
     res.redirect('/add-rooftop?success=enphase_connected');
-    
+
   } catch (error) {
     console.error('OAuth callback error:', error);
     res.redirect('/add-rooftop?error=token_exchange_failed');
