@@ -8,6 +8,44 @@ interface OptionType {
   label: string;
 }
 
+// Logo Carousel Component
+const LogoCarousel: React.FC = () => {
+  const [currentLogoIndex, setCurrentLogoIndex] = useState(0);
+  
+  const logos = [
+    { src: '/out/Enphase_logo.png', alt: 'Enphase' },
+    { src: '/out/TeslaEnergy_logo.png', alt: 'Tesla Energy' },
+    { src: '/out/SolarEdge_logo.svg', alt: 'SolarEdge' },
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentLogoIndex((prev) => (prev + 1) % logos.length);
+    }, 2500); // Change logo every 2.5 seconds
+
+    return () => clearInterval(interval);
+  }, [logos.length]);
+
+  return (
+    <div className="mt-6 text-center">
+      <p className="text-white/80 text-sm mb-3 font-medium">Apps We Connect To</p>
+      <div className="relative h-16 flex items-center justify-center">
+        {logos.map((logo, index) => (
+          <img
+            key={index}
+            src={logo.src}
+            alt={logo.alt}
+            className={`absolute h-12 w-auto object-contain transition-opacity duration-500 ${
+              index === currentLogoIndex ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{ filter: 'brightness(0.9)' }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export default function AddRooftop() {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -131,10 +169,11 @@ export default function AddRooftop() {
 
       {/* 📋 Signup Form */}
       <div className="relative z-20 flex items-center justify-center min-h-screen px-4">
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white/90 backdrop-blur-md rounded-xl shadow-2xl p-8 max-w-md w-full space-y-6"
-        >
+        <div className="flex flex-col items-center">
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white/90 backdrop-blur-md rounded-xl shadow-2xl p-8 max-w-md w-full space-y-6"
+          >
 <h2 className="text-2xl font-bold text-center text-gray-900">Connect Your Rooftop</h2>
 <p className="text-center text-sm text-gray-700 mt-1">
   Earn B3TR rewards for every kilowatt-hour your rooftop solar panels produce.
@@ -364,7 +403,11 @@ export default function AddRooftop() {
           >
             {step < 4 ? 'Next' : step === 4 ? 'Next' : 'Complete Setup'}
           </button>
-        </form>
+          </form>
+          
+          {/* Logo Carousel */}
+          <LogoCarousel />
+        </div>
       </div>
     </div>
   );
