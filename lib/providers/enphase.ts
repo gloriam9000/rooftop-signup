@@ -20,11 +20,12 @@ export async function fetchProductionData(user: UserConnection): Promise<{ kwh: 
 
   try {
     // Enphase API endpoint for production data
-    const response = await fetch(`https://api.enphaseenergy.com/api/v2/systems/${user.system_id}/summary`, {
+    const response = await fetch(`https://api.enphaseenergy.com/api/v4/systems/${user.system_id}/summary`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${user.access_token}`,
         'Content-Type': 'application/json',
+        'key': process.env.ENPHASE_API_KEY || '',
       },
     });
 
